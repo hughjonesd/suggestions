@@ -1,5 +1,5 @@
 [package]
-name = "changetxt"
+name = "suggs"
 version = "0.1.0"
 edition = "2021"
 authors = ["David Hugh-Jones <davidhughjones@gmail.com>"]

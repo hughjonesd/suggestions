@@ -40,6 +40,10 @@ fn main() {
     
     let result = match &cli.command {
         Commands::Diff{old, new} => {
+<<<<<<< HEAD
+=======
+            println!("old: {:?} new: {:?}", old, new);
+>>>>>>> 9cac69761ecfe34b4ce931064ed9dddeda0b5c9e
             command_diff(old, new)
         },
         Commands::Old{changetxt} => {
