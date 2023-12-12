@@ -40,10 +40,6 @@ fn main() {
     
     let result = match &cli.command {
         Commands::Diff{old, new} => {
-<<<<<<< HEAD
-=======
-            println!("old: {:?} new: {:?}", old, new);
->>>>>>> 9cac69761ecfe34b4ce931064ed9dddeda0b5c9e
             command_diff(old, new)
         },
         Commands::Old{changetxt} => {
@@ -98,7 +94,7 @@ fn make_changetxt_from_string(mut text: String) -> io::Result<Node> {
         //       and the x "verbose" flag, to use whitespace.
         r"(?sx)
         (?<chunk_text>.*?)          # everything up to the author
-        (?<author_text>@\S+\s*)?    # optionally, an author tag (plus trailing whitespace)
+        (?<author_text>@\S+?\s*)?   # optionally, an author tag (plus trailing whitespace)
         (?<tag>                     
             \+\+\[   |              # either an opener...
             --\[     |
@@ -218,7 +214,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn can_make_changetxt_from_string() {
+    fn make_basic_changetxt() {
         let mut txt = r"
         Original text.
         ++[An addition.]++
@@ -229,6 +225,28 @@ mod tests {
         make_changetxt_from_string(txt).unwrap();
     }
 
+    #[test]
+    fn make_signed_changetxt() {
+        let mut txt = r"
+        Original text.
+        ++[An addition. @author1]++
+        More text. 
+        --[Deleted text. @author2 ]--
+        %%[A comment. @author3]%%
+        ".to_string();
+        make_changetxt_from_string(txt).unwrap();
+    }
+
+    #[test]
+    fn make_nested_changetxt() {
+        let mut txt = r"
+        Original text.
+        ++[An addition. ++[A nested addition.]++ More of that addition.]++
+        More text. 
+        ++[An addition. --[Nested deletion.]-- More of that addition.]++
+        ".to_string();
+        make_changetxt_from_string(txt).unwrap();
+    }
 
     #[test]
     fn can_diff_files() {
