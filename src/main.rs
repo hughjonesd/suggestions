@@ -1,17 +1,34 @@
 
 
-mod changetxt;
+/* 
+TODO: 
+- allow variable opening/closing tags
+  - automatically recognize numbers of +/-/%
+  - maybe also arbitrary strings embedded as "suggs add ++{ }++" or such
+- colorized output (but also a vim plugin?)
+- allow stdin as input to old/new
+- accept/reject commands work on file in place
+- options: handling comments (optional to strip in old/new; maybe separate command)
+- testing: multiple
+- writing a README and justification
+- make author a &str, understand this stuff better
+- visitor pattern?
 
-use changetxt::*;
+- optionally sign output of diff DONE
+- rename changetxt DONE
+*/
+
+mod node;
+
+use node::*;
 
 use similar::{Algorithm, ChangeTag};
 use similar::utils::diff_words;
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, Args};
 
-use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+use std::io;
 use std::io::Read;
 
 use regex::Regex;
@@ -26,12 +43,20 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Output a changetxt file showing the difference from old to new
-    Diff { old: String, new: String },
-    /// Output the old file from changetxt, with all changes rejected
-    Old {changetxt: String},
-    /// Output the new file from changetxt, with all changes accepted
-    New {changetxt: String},
+    /// Output a suggestions file showing the difference from old to new
+    Diff(DiffArgs),
+    /// Output file with all changes rejected
+    Old {file: String},
+    /// Output file with all changes accepted
+    New {file: String},
+}
+
+#[derive(Args)]
+struct DiffArgs {
+    #[arg(short, long)]
+    author: Option<String>,
+    old: String, 
+    new: String 
 }
 
 
@@ -39,53 +64,49 @@ fn main() {
     let cli = Cli::parse();
     
     let result = match &cli.command {
-        Commands::Diff{old, new} => {
-            command_diff(old, new)
+        Commands::Diff(DiffArgs{author, old, new}) => {
+            command_diff(old, new, author)
         },
-        Commands::Old{changetxt} => {
-            command_old(changetxt)
+        Commands::Old{file} => {
+            command_old(file)
         },
-        Commands::New{changetxt} => {
-            command_new(changetxt)
+        Commands::New{file} => {
+            command_new(file)
         }
     };
 }
 
-// TODO allow optional author signing
-fn command_diff(old: &String, new: &String) -> io::Result<()> {
-    let result = make_changetxt_from_diff(old, new)?;
-    Ok(println!("{}", result))
-}
 
-// TODO make stripping comments optional
-fn command_old(changetxt: &String) -> io::Result<()> {
-    let mut changetxt = make_changetxt_from_file(changetxt)?;
-    let result = changetxt.reject_to_string();
-    Ok(println!("{}", result))
-}
-
-// TODO make stripping comments optional
-fn command_new(changetxt: &String) -> io::Result<()> {
-    let mut changetxt = make_changetxt_from_file(changetxt)?;
-    let result = changetxt.accept_to_string();
+fn command_diff(old: &String, new: &String, author: &Option<String>) -> io::Result<()> {
+    let result = make_suggestions_from_diff(old, new, author)?;
     Ok(println!("{}", result))
 }
 
 
-fn make_changetxt_from_file(path: &String) -> io::Result<Node> {
+fn command_old(path: &String) -> io::Result<()> {
+    let mut node = make_node_from_file(path)?;
+    let result = node.reject_to_string();
+    Ok(println!("{}", result))
+}
+
+
+fn command_new(path: &String) -> io::Result<()> {
+    let mut node = make_node_from_file(path)?;
+    let result = node.accept_to_string();
+    Ok(println!("{}", result))
+}
+
+
+fn make_node_from_file(path: &String) -> io::Result<Node> {
     let mut file = File::open(path)?;
     let mut text = String::new();
     file.read_to_string(&mut text)?;
-    make_changetxt_from_string(text)
+    make_node_from_string(text)
 }
 
 
-fn make_changetxt_from_string(mut text: String) -> io::Result<Node> {
-    let mut root = Node {
-        author: None,
-        contents: Vec::new(),
-        kind: NodeKind::Root
-    };
+fn make_node_from_string(mut text: String) -> io::Result<Node> {
+    let mut root = Node::root();
     // The vector of nodes that we are "in".
     let mut context = vec![root];
 
@@ -136,7 +157,7 @@ fn make_changetxt_from_string(mut text: String) -> io::Result<Node> {
             }
 
             if OPENERS.contains(&tag) {
-                // - create a node of the opener's type and add it to the context vector.
+                // Create a node of the opener's type, add it to the context
                 let nn_kind = match tag {
                     "++[" => NodeKind::Insertion,
                     "--[" => NodeKind::Deletion,
@@ -173,7 +194,11 @@ fn make_changetxt_from_string(mut text: String) -> io::Result<Node> {
 }
 
 
-fn make_changetxt_from_diff(path_old: &String, path_new: &String) -> io::Result<String> {
+fn make_suggestions_from_diff(
+    path_old: &String, 
+    path_new: &String, 
+    author: &Option<String>
+) -> io::Result<String> {
     let mut file_old = File::open(path_old)?;
     let mut file_new = File::open(path_new)?;
     let mut contents_old = String::new();
@@ -181,30 +206,49 @@ fn make_changetxt_from_diff(path_old: &String, path_new: &String) -> io::Result<
     file_old.read_to_string(&mut contents_old)?;
     file_new.read_to_string(&mut contents_new)?;
 
-    let changes = diff_words(Algorithm::Myers, &contents_old, &contents_new);
+    let diffs = diff_words(Algorithm::Myers, &contents_old, &contents_new);
 
-    Ok(changes_to_changetxt(changes)) 
+    let nd = make_node_from_diffs(diffs, author);
+    let output = nd.leave_to_string();
+    Ok(output) 
 }
 
 
-fn changes_to_changetxt(changes: Vec<(ChangeTag, &str)>) -> String {
-    let mut output = String::new();
+fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: &Option<String>) -> Node {
+    // let author_string = if let Some(author) = author {
+    //     format!(" {} ", author)
+    // } else {
+    //     "".to_string()
+    // };
+
+    let mut root = Node::root();
+    
     for change in changes {
-        let change_str = match &change {
+        match change {
             (ChangeTag::Equal, text) => {
-                text.to_string()       
+                root.contents.push(Chunk::TextChunk(text.to_string()));    
             },
             (ChangeTag::Insert, text) => {
-                TAGS_INSERTION[0].to_string() + text + TAGS_INSERTION[1]
+                let nd = Node {
+                    kind: NodeKind::Insertion,
+                    contents: vec![Chunk::TextChunk(text.to_string())],
+                    author: author.clone()
+                };
+                root.contents.push(Chunk::NodeChunk(nd));
             },
             (ChangeTag::Delete, text) => {
-                TAGS_DELETION[0].to_string() + text + TAGS_DELETION[1]
+                let nd = Node {
+                    kind: NodeKind::Deletion,
+                    contents: vec![Chunk::TextChunk(text.to_string())],
+                    author: author.clone()
+                };
+                root.contents.push(Chunk::NodeChunk(nd));
             }
         };
-        output.extend(change_str.chars());
+        
     }
 
-    output
+    root
 }
 
 
@@ -214,7 +258,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn make_basic_changetxt() {
+    fn test_make_node_basic() {
         let mut txt = r"
         Original text.
         ++[An addition.]++
@@ -222,11 +266,11 @@ mod tests {
         --[Deleted text.]--
         %%[A comment.]%%
         ".to_string();
-        make_changetxt_from_string(txt).unwrap();
+        make_node_from_string(txt).unwrap();
     }
 
     #[test]
-    fn make_signed_changetxt() {
+    fn test_make_node_signed() {
         let mut txt = r"
         Original text.
         ++[An addition. @author1]++
@@ -234,28 +278,32 @@ mod tests {
         --[Deleted text. @author2 ]--
         %%[A comment. @author3]%%
         ".to_string();
-        make_changetxt_from_string(txt).unwrap();
+        make_node_from_string(txt).unwrap();
     }
 
     #[test]
-    fn make_nested_changetxt() {
+    fn test_make_node_nested() {
         let mut txt = r"
         Original text.
         ++[An addition. ++[A nested addition.]++ More of that addition.]++
         More text. 
         ++[An addition. --[Nested deletion.]-- More of that addition.]++
         ".to_string();
-        make_changetxt_from_string(txt).unwrap();
+        make_node_from_string(txt).unwrap();
     }
 
     #[test]
-    fn can_diff_files() {
+    fn test_can_diff_files() {
         let path_old = "old.txt".to_string();
         let path_new = "new.txt".to_string();
 
-        let test_output = make_changetxt_from_diff(&path_old, &path_new).unwrap();
-
+        let test_output = make_suggestions_from_diff(&path_old, &path_new, &None).unwrap();
         let expected_output = "A ++[new ]++sentence.\n";
+        assert_eq!(test_output, expected_output);
+
+        let author = Some("@author1".to_string());
+        let test_output = make_suggestions_from_diff(&path_old, &path_new, &author).unwrap();
+        let expected_output = "A ++[new  @author1 ]++sentence.\n";
         assert_eq!(test_output, expected_output);
     }
 }
