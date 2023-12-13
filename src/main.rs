@@ -7,15 +7,18 @@ TODO:
   - maybe also arbitrary strings embedded as "suggs add ++{ }++" or such
 - colorized output (but also a vim plugin?)
 - allow stdin as input to old/new
-- accept/reject commands work on file in place
+
 - options: handling comments (optional to strip in old/new; maybe separate command)
-- testing: multiple
+- testing: 
+  - multiple
+  - accept/reject
 - writing a README and justification
 - make author a &str, understand this stuff better
 - visitor pattern?
 
 - optionally sign output of diff DONE
 - rename changetxt DONE
+- accept/reject commands work on file in place DONE
 */
 
 mod node;
@@ -45,10 +48,16 @@ struct Cli {
 enum Commands {
     /// Output a suggestions file showing the difference from old to new
     Diff(DiffArgs),
-    /// Output file with all changes rejected
+    /// Output `file` with all changes rejected
     Old {file: String},
-    /// Output file with all changes accepted
+    /// Output `file` with all changes accepted
     New {file: String},
+    /// Reject all changes in `file` in-place
+    Reject {file: String},
+    /// Accept all changes in `file` in-place
+    Accept {file: String},
+    /// Print `file` with changes highlighted in color
+    Colorize {file: String},
 }
 
 #[derive(Args)]
@@ -63,7 +72,7 @@ struct DiffArgs {
 fn main() {
     let cli = Cli::parse();
     
-    let result = match &cli.command {
+    let _ = match &cli.command {
         Commands::Diff(DiffArgs{author, old, new}) => {
             command_diff(old, new, author)
         },
@@ -72,7 +81,16 @@ fn main() {
         },
         Commands::New{file} => {
             command_new(file)
-        }
+        },
+        Commands::Reject{file} => {
+            command_reject(file)
+        },
+        Commands::Accept{file} => {
+            command_accept(file)
+        },
+        Commands::Colorize{file} => {
+            command_colorize(file)
+        },
     };
 }
 
@@ -84,16 +102,42 @@ fn command_diff(old: &String, new: &String, author: &Option<String>) -> io::Resu
 
 
 fn command_old(path: &String) -> io::Result<()> {
-    let mut node = make_node_from_file(path)?;
-    let result = node.reject_to_string();
-    Ok(println!("{}", result))
+    let node = make_node_from_file(path)?;
+    let suggs = node.reject_to_string();
+    Ok(println!("{}", suggs))
 }
 
 
 fn command_new(path: &String) -> io::Result<()> {
-    let mut node = make_node_from_file(path)?;
-    let result = node.accept_to_string();
-    Ok(println!("{}", result))
+    let node = make_node_from_file(path)?;
+    let suggs = node.accept_to_string();
+    Ok(println!("{}", suggs))
+}
+
+
+fn command_colorize(path: &String) -> io::Result<()> {
+    let node = make_node_from_file(path)?;
+    let suggs = node.leave_to_colorized();
+    Ok(println!("{}", suggs))
+}
+
+
+fn command_reject(path: &String) -> io::Result<()> {
+    let node = make_node_from_file(path)?;
+    let suggs = node.reject_to_string();
+    print_suggestions_to_file(suggs, path)
+}
+
+
+fn command_accept(path: &String) -> io::Result<()> {
+    let node = make_node_from_file(path)?;
+    let suggs = node.accept_to_string();
+    print_suggestions_to_file(suggs, path)
+}
+
+
+fn print_suggestions_to_file(string: String, path: &String) -> io::Result<()> {
+    std::fs::write(path.as_str(), string.as_str())
 }
 
 
@@ -106,7 +150,7 @@ fn make_node_from_file(path: &String) -> io::Result<Node> {
 
 
 fn make_node_from_string(mut text: String) -> io::Result<Node> {
-    let mut root = Node::root();
+    let root = Node::root();
     // The vector of nodes that we are "in".
     let mut context = vec![root];
 
@@ -172,7 +216,7 @@ fn make_node_from_string(mut text: String) -> io::Result<Node> {
                 context.push(new_node);
                 
             } else { // tag is a closer or EOF
-                let mut finished_node = context.pop().unwrap();
+                let finished_node = context.pop().unwrap();
                 if let Some(cur_node) = context.last_mut() {
                     let correct_closer = closer(&finished_node.kind);
                     if tag != correct_closer {
@@ -259,7 +303,7 @@ mod tests {
 
     #[test]
     fn test_make_node_basic() {
-        let mut txt = r"
+        let txt = r"
         Original text.
         ++[An addition.]++
         More text. 
@@ -271,7 +315,7 @@ mod tests {
 
     #[test]
     fn test_make_node_signed() {
-        let mut txt = r"
+        let txt = r"
         Original text.
         ++[An addition. @author1]++
         More text. 
@@ -283,7 +327,7 @@ mod tests {
 
     #[test]
     fn test_make_node_nested() {
-        let mut txt = r"
+        let txt = r"
         Original text.
         ++[An addition. ++[A nested addition.]++ More of that addition.]++
         More text. 

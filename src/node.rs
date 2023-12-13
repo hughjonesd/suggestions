@@ -1,4 +1,5 @@
 
+use colored::*;
 
 pub struct Node {
     pub author: Option<String>,
@@ -6,6 +7,7 @@ pub struct Node {
     pub kind: NodeKind
 }
 
+#[derive(PartialEq)]
 pub enum NodeKind {
     Root,
     Insertion,
@@ -92,7 +94,54 @@ impl Node {
         output
     }
 
+
+    pub fn leave_to_colorized(&self) -> ColoredString {
+        let my_color = match self.kind {
+            NodeKind::Comment => "cyan",
+            NodeKind::Insertion => "green",
+            NodeKind::Deletion  => "red",
+            NodeKind::Root => "black" // we'll just clear it later
+        };
+
+        let op = opener(&self.kind).color(my_color);
+        let cl = closer(&self.kind).color(my_color);
+
+        let content_strings: Vec<ColoredString> = self.contents.iter().map(
+            |ch| {
+                let cs = match ch {
+                    Chunk::NodeChunk(nd) => nd.leave_to_colorized(),
+                    Chunk::TextChunk(text) => text.color(my_color)
+                };
+                if self.kind == NodeKind::Root {
+                    cs.clear()
+                } else {
+                    cs
+                }
+            }
+        ).collect();
+
+        let auth_str = if let Some(auth) = &self.author {
+            let mut a = String::from(" ");
+            a.push_str(auth.as_str());
+            a.push_str(" ");
+            a.bright_cyan()
+        }  else {
+            "".to_string().normal()
+        };
+
+        let mut output = "".to_string();
+
+        output.push_str(format!("{}", op).as_str());
+        for s in content_strings {
+            output.push_str(format!("{}", s).as_str());
+        }
+        output.push_str(format!("{}", auth_str).as_str());
+        output.push_str(format!("{}", cl).as_str());
+
+        output.into()
+    }
 } 
+
 
 pub fn opener(nk: &NodeKind) -> &str {
     match nk {
@@ -103,6 +152,7 @@ pub fn opener(nk: &NodeKind) -> &str {
     }
 }
 
+
 pub fn closer(nk: &NodeKind) -> &str {
     match nk {
         NodeKind::Root => "",
@@ -112,12 +162,10 @@ pub fn closer(nk: &NodeKind) -> &str {
     }
 }
 
+
 pub const OPENERS: [&str; 3] = ["++[", "--[", "%%["];
 pub const CLOSERS: [&str; 3]  = ["]++", "]--", "]%%"];
 
-pub const TAGS_INSERTION: [&str; 2] = ["++[", "]++"];
-pub const TAGS_DELETION: [&str; 2] = ["--[", "]--"];
-pub const TAGS_COMMENT: [&str; 2] = ["--[", "]--"];
 
 impl Chunk {
     fn leave_to_string(&self) -> String {
