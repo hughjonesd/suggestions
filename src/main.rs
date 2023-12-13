@@ -5,7 +5,7 @@ TODO:
 - allow variable opening/closing tags
   - automatically recognize numbers of +/-/%
   - maybe also arbitrary strings embedded as "suggs add ++{ }++" or such
-- colorized output (but also a vim plugin?)
+- vim plugin?
 - allow stdin as input to old/new
 
 - options: handling comments (optional to strip in old/new; maybe separate command)
@@ -19,6 +19,7 @@ TODO:
 - optionally sign output of diff DONE
 - rename changetxt DONE
 - accept/reject commands work on file in place DONE
+- colorized output DONE
 */
 
 mod node;
@@ -46,22 +47,23 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Output a suggestions file showing the difference from old to new
+    /// Output diff from OLD to NEW in suggestions format
     Diff(DiffArgs),
-    /// Output `file` with all changes rejected
+    /// Output result of rejecting all changes in FILE
     Old {file: String},
-    /// Output `file` with all changes accepted
+    /// Output result of accepting all changes in FILE
     New {file: String},
-    /// Reject all changes in `file` in-place
+    /// Overwrite FILE, rejecting all changes
     Reject {file: String},
-    /// Accept all changes in `file` in-place
+    /// Overwrite FILE, accepting all changes
     Accept {file: String},
-    /// Print `file` with changes highlighted in color
+    /// Print suggestions FILE, highlight changes and comments
     Colorize {file: String},
 }
 
 #[derive(Args)]
 struct DiffArgs {
+    /// Add AUTHOR to diff
     #[arg(short, long)]
     author: Option<String>,
     old: String, 
@@ -96,7 +98,11 @@ fn main() {
 
 
 fn command_diff(old: &String, new: &String, author: &Option<String>) -> io::Result<()> {
-    let result = make_suggestions_from_diff(old, new, author)?;
+    let author_canon = author.clone().map(|mut a| {
+        ensure_canonical_author(&mut a);
+        a
+    });
+    let result = make_suggestions_from_diff(old, new, &author_canon)?;
     Ok(println!("{}", result))
 }
 
@@ -158,18 +164,19 @@ fn make_node_from_string(mut text: String) -> io::Result<Node> {
         // (?sx) is the s flag, which makes "." match even a newline;
         //       and the x "verbose" flag, to use whitespace.
         r"(?sx)
-        (?<chunk_text>.*?)          # everything up to the author
-        (?<author_text>@\S+?\s*)?   # optionally, an author tag (plus trailing whitespace)
+        (?<chunk_text> .*?)              # everything up to the author
+        (?<author_string> \ *@\S+?\s*)?  # optionally, an author tag (plus whitespace)
+                                         # note '\ ' matches a single literal space
         (?<tag>                     
-            \+\+\[   |              # either an opener...
+            \+\+\[   |                   # either an opener...
             --\[     |
             %%\[     |
-            ]\+\+    |              # ... a closer ...
+            ]\+\+    |                   # ... a closer ...
             ]--      |
             ]%%      |
-            $                       # ... or EOF
+            $                            # ... or EOF
         )                      
-        (?<remainder>.*)            # everything that's left
+        (?<remainder> .*)                # everything that's left
         ";
     let re = Regex::new(re_string).unwrap();
     
@@ -180,16 +187,16 @@ fn make_node_from_string(mut text: String) -> io::Result<Node> {
                 panic!("Regular expression failed to match")
             }; 
             let mut chunk_text = caps["chunk_text"].to_string();
-            let author_text = &caps.name("author_text").map_or("", |m| m.as_str());
+            let author_string = &caps.name("author_string").map_or("", |m| m.as_str());
             let tag = &caps["tag"];
 
-            if author_text.len() > 0 {
+            if author_string.len() > 0 {
                 if CLOSERS.contains(&tag) {
-                    let author = author_text.trim().to_string();
-                    context.last_mut().unwrap().author = Some(author);
+                    context.last_mut().unwrap().author_string = 
+                        Some(author_string.to_string());
                 } else {
-                    chunk_text.push_str(author_text);
-                    eprintln!("Found possible handle {author_text} before opening tag or EOF");
+                    chunk_text.push_str(author_string);
+                    eprintln!("Found possible handle {author_string} before opening tag or EOF");
                     eprintln!("Author handles should only be before a closing tag, like:");
                     eprintln!("  ++[Addition. @author ]++");
                 }
@@ -209,7 +216,7 @@ fn make_node_from_string(mut text: String) -> io::Result<Node> {
                     _     => panic!("Weird opening tag {:?}", tag)
                 };
                 let new_node = Node {
-                    author : None,
+                    author_string : None,
                     contents: Vec::new(),
                     kind : nn_kind
                 };
@@ -259,11 +266,11 @@ fn make_suggestions_from_diff(
 
 
 fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: &Option<String>) -> Node {
-    // let author_string = if let Some(author) = author {
-    //     format!(" {} ", author)
-    // } else {
-    //     "".to_string()
-    // };
+    let author_string = if let Some(author) = author {
+        Some(format!(" {} ", author))
+    } else {
+        None
+    };
 
     let mut root = Node::root();
     
@@ -276,7 +283,7 @@ fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: &Option<String>
                 let nd = Node {
                     kind: NodeKind::Insertion,
                     contents: vec![Chunk::TextChunk(text.to_string())],
-                    author: author.clone()
+                    author_string: author_string.clone()
                 };
                 root.contents.push(Chunk::NodeChunk(nd));
             },
@@ -284,7 +291,7 @@ fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: &Option<String>
                 let nd = Node {
                     kind: NodeKind::Deletion,
                     contents: vec![Chunk::TextChunk(text.to_string())],
-                    author: author.clone()
+                    author_string: author_string.clone()
                 };
                 root.contents.push(Chunk::NodeChunk(nd));
             }
