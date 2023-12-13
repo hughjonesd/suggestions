@@ -1,0 +1,14 @@
+
+A plain text file with some simple changes.
+
+Some text. ++[An insertion.]++ More text.
+
+Some text. ++[A signed insertion. @author1]++ More text.
+
+Some text. --[A deletion.]-- More text.
+
+Some text. --[A signed deletion. @author1]-- More text.
+
+Some text. %%[A comment.]%% More text.
+
+Some text. %%[A signed comment. @author1]%% More text.

@@ -1,0 +1,50 @@
+A text file with nested changes.
+
+Some text. ++[An insertion.++[A nested insertion.]++ More insertion.]++ More text.
+
+Some text. ++[An insertion.--[A nested deletion.]-- More insertion.]++ More text.
+
+Some text. ++[An insertion.%%[A nested comment.]%% More insertion.]++ More text.
+
+Some text. --[A deletion.++[A nested insertion.]++ More deletion.]-- More text.
+
+Some text. --[A deletion.--[A nested deletion.]-- More deletion.]-- More text.
+
+Some text. --[A deletion.%%[A nested comment.]%% More d.]-- More text.
+
+Some text. ++[An insertion.++[A nested insertion.]++ More insertion.]++ More text.
+
+Some text. ++[An insertion.--[A nested deletion.]-- More insertion.]++ More text.
+
+Some text. ++[An insertion.%%[A nested comment.]%% More insertion.]++ More text.
+
+++[
+A multiline signed insertion.
+++[A signed nested insertion. @author2]++
+@author1
+]++
+
+++[
+A multiline signed insertion.
+--[A signed nested deletion. @author2]--
+@author1
+]++
+
+++[
+A multiline signed insertion.
+%%[A signed nested comment. @author2]%%
+@author1
+]++
+
+--[
+A multiline signed deletion.
+++[A signed nested insertion. @author2]++
+@author1
+]--
+
+--[
+A multiline signed deletion.
+--[A signed nested deletion. @author2]--
+@author1
+]--
+

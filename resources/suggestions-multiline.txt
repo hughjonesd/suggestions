@@ -1,0 +1,35 @@
+A text file with some multiline changes.
+
+A paragraph of ordinary text.
+++[
+A multiline addition. The addition spans
+two lines.
+]++
+The text paragraph continues.
+++[
+A multiline addition. The addition spans
+two lines. It is signed. @author1
+]++
+The text paragraph concludes.
+
+A paragraph of ordinary text. 
+--[
+Originally it spanned four lines.
+Now the middle two lines have been deleted.
+]--
+The text paragraph concludes.
+
+A paragraph of ordinary text. 
+%%[
+A multiline comment,
+spanning two lines, and signed.
+@author1
+]%%
+The text paragraph concludes.
+
+A paragraph of ordinary text.
+++[
+A multiline addition. --[A short deletion.]-- The 
+addition spans two lines.
+]++
+The text paragraph continues.
