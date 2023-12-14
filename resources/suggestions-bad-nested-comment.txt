@@ -1,0 +1,8 @@
+A bad text file with a nested comment.
+
+%%[
+A comment.
+%%[Oops! Another one.]%%
+
+]%%
+

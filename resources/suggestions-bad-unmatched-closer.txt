@@ -1,0 +1,9 @@
+A bad text file with an unmatched closing tag.
+
+++[
+Added text.
+
+Unmatched deletion closer here: ]--
+
+]++
+

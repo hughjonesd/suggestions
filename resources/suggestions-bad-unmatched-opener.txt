@@ -1,0 +1,6 @@
+A bad text file with an unmatched opening tag.
+
+++[
+Added text, but no corresponding closer.
+
+

@@ -2,17 +2,36 @@
 
 /* 
 TODO: 
-- allow variable opening/closing tags
-  - automatically recognize numbers of +/-/%
-  - maybe also arbitrary strings embedded as "suggs add ++{ }++" or such
-- vim plugin?
-- allow stdin as input to old/new
 
-- options: handling comments (optional to strip in old/new; maybe separate command)
+* means priority
+
+- allow variable opening/closing tags
+  - automatically recognize numbers of +/-/% *
+  - maybe also arbitrary strings embedded as "suggs add ++{ }++" or such
+- writing a README and justification *
+- bug: author followed by newline removes newline
+    Problem is that this:
+
+    xxx
+    ++[
+    blah @foo
+    ]++ 
+    xxx
+    
+    becomes
+
+    xxx
+    blah xxx
+    
+- split binary from library
+- vim syntax?
+- allow stdin as input to old/new
+- tex output
+- options: handling comments 
+  - options to strip or keep; maybe separate command*
 - testing: 
-  - multiple
-  - accept/reject
-- writing a README and justification
+  - more wrongitude
+
 - make author a &str, understand this stuff better
 - visitor pattern?
 
@@ -20,6 +39,9 @@ TODO:
 - rename changetxt DONE
 - accept/reject commands work on file in place DONE
 - colorized output DONE
+- ban nesting inside comments DON
+- strip whitespace if @handle, opener, or closer is only thing on a line. DONE
+- integration tests DONE
 */
 
 mod node;
@@ -30,6 +52,8 @@ use similar::{Algorithm, ChangeTag};
 use similar::utils::diff_words;
 
 use clap::{Parser, Subcommand, Args};
+
+use anyhow::{Result, bail};
 
 use std::fs::File;
 use std::io;
@@ -71,15 +95,15 @@ struct DiffArgs {
 }
 
 
-fn main() {
+fn main() -> Result<()> {
     let cli = Cli::parse();
     
-    let _ = match &cli.command {
+    match &cli.command {
         Commands::Diff(DiffArgs{author, old, new}) => {
-            command_diff(old, new, author)
+            Ok(command_diff(old, new, author)?)
         },
         Commands::Old{file} => {
-            command_old(file)
+            Ok(command_old(file)?)
         },
         Commands::New{file} => {
             command_new(file)
@@ -93,11 +117,11 @@ fn main() {
         Commands::Colorize{file} => {
             command_colorize(file)
         },
-    };
+    }
 }
 
 
-fn command_diff(old: &String, new: &String, author: &Option<String>) -> io::Result<()> {
+fn command_diff(old: &String, new: &String, author: &Option<String>) -> Result<()> {
     let author_canon = author.clone().map(|mut a| {
         ensure_canonical_author(&mut a);
         a
@@ -107,47 +131,47 @@ fn command_diff(old: &String, new: &String, author: &Option<String>) -> io::Resu
 }
 
 
-fn command_old(path: &String) -> io::Result<()> {
+fn command_old(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.reject_to_string();
     Ok(println!("{}", suggs))
 }
 
 
-fn command_new(path: &String) -> io::Result<()> {
+fn command_new(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.accept_to_string();
     Ok(println!("{}", suggs))
 }
 
 
-fn command_colorize(path: &String) -> io::Result<()> {
+fn command_colorize(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.leave_to_colorized();
     Ok(println!("{}", suggs))
 }
 
 
-fn command_reject(path: &String) -> io::Result<()> {
+fn command_reject(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.reject_to_string();
-    print_suggestions_to_file(suggs, path)
+    Ok(print_suggestions_to_file(suggs, path)?)
 }
 
 
-fn command_accept(path: &String) -> io::Result<()> {
+fn command_accept(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.accept_to_string();
-    print_suggestions_to_file(suggs, path)
+    Ok(print_suggestions_to_file(suggs, path)?)
 }
 
 
-fn print_suggestions_to_file(string: String, path: &String) -> io::Result<()> {
-    std::fs::write(path.as_str(), string.as_str())
+fn print_suggestions_to_file(string: String, path: &String) -> Result<()> {
+    Ok(std::fs::write(path.as_str(), string.as_str())?)
 }
 
 
-fn make_node_from_file(path: &String) -> io::Result<Node> {
+fn make_node_from_file(path: &String) -> Result<Node> {
     let mut file = File::open(path)?;
     let mut text = String::new();
     file.read_to_string(&mut text)?;
@@ -155,7 +179,7 @@ fn make_node_from_file(path: &String) -> io::Result<Node> {
 }
 
 
-fn make_node_from_string(mut text: String) -> io::Result<Node> {
+fn make_node_from_string(mut text: String) -> Result<Node> {
     let root = Node::root();
     // The vector of nodes that we are "in".
     let mut context = vec![root];
@@ -183,12 +207,15 @@ fn make_node_from_string(mut text: String) -> io::Result<Node> {
     while text.len() > 0 {
         // read chunks up to the next marker (or EOF)
         text = {
-            let Some(caps) = re.captures(&text) else {
-                panic!("Regular expression failed to match")
-            }; 
+            let caps = re.captures(&text).unwrap(); 
             let mut chunk_text = caps["chunk_text"].to_string();
             let author_string = &caps.name("author_string").map_or("", |m| m.as_str());
             let tag = &caps["tag"];
+            let mut remainder = caps["remainder"].to_string();
+
+            if chunk_text.ends_with('\n') || author_string.ends_with('\n') {
+                remainder = fix_newlines(remainder);
+            }
 
             if author_string.len() > 0 {
                 if CLOSERS.contains(&tag) {
@@ -227,7 +254,10 @@ fn make_node_from_string(mut text: String) -> io::Result<Node> {
                 if let Some(cur_node) = context.last_mut() {
                     let correct_closer = closer(&finished_node.kind);
                     if tag != correct_closer {
-                        panic!("Unmatched closing tag '{}', I was expecting '{}'", tag, correct_closer);
+                        bail!("Unmatched closing tag '{}', I was expecting '{}'.", tag, correct_closer);
+                    }
+                    if cur_node.kind == NodeKind::Comment {
+                        bail!("Comments cannot contain other tags.");
                     }
                     cur_node.contents.push(Chunk::NodeChunk(finished_node));
                 } else {
@@ -237,13 +267,23 @@ fn make_node_from_string(mut text: String) -> io::Result<Node> {
             }
 
             // assign to 'text'
-            (&caps["remainder"]).to_string()
+            remainder.to_string()
         }; 
     }
 
     panic!("Couldn't parse changetxt, was it empty?")
 }
 
+
+fn fix_newlines(mut remainder: String) -> String {
+    // if tag is on its own on a line:
+    let re_opening_ws = Regex::new(r"^\s*?\n").unwrap();
+    if re_opening_ws.is_match(remainder.as_str()) {
+            remainder = re_opening_ws.replace(remainder.as_str(), "").to_string();
+    } 
+
+    remainder
+}
 
 fn make_suggestions_from_diff(
     path_old: &String, 
@@ -345,8 +385,8 @@ mod tests {
 
     #[test]
     fn test_can_diff_files() {
-        let path_old = "old.txt".to_string();
-        let path_new = "new.txt".to_string();
+        let path_old = "resources/old.txt".to_string();
+        let path_new = "resources/new.txt".to_string();
 
         let test_output = make_suggestions_from_diff(&path_old, &path_new, &None).unwrap();
         let expected_output = "A ++[new ]++sentence.\n";
