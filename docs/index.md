@@ -6,7 +6,7 @@ To rebuild index.md, run:
 
 
 -->
-<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+<link rel="stylesheet" href="simple.css">
 
 # Suggestions files
 
