@@ -14,10 +14,12 @@ Many word processors have built-in change management.
 Authors can suggest changes and add comments,
 then an editor can accept or reject them.
 
+![Word screenshot](/word-screenshot.png "Track changes in Microsoft Word")
+
 People who write documents using text-file-based formats like **TeX** or
 **markdown** have a problem: text files don't
 have a concept of changes. This makes it harder to collaborate
-in teams. To get change management, 
+in teams. To get change management, they can:
 
 * Use an online editor, losing the flexibility of simple text files;
 * Use a version control systems like **git**, which is complex and technical.
