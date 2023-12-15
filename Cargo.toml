@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2021"
 authors = ["David Hugh-Jones <davidhughjones@gmail.com>"]
 description = "A simple, human-readable diff and comment format"
+license = "MIT"
+repository = "https://github.com/hughjonesd/suggestions"
+homepage = "https://hughjonesd.github.io/suggestions"
+keywords = ["cli", "diff", "changes", "suggestions"]
+categories = ["command-line-utilities", "text-processing"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
