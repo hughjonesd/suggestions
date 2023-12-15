@@ -45,7 +45,8 @@ jobs:
         uses: r-lib/actions/setup-pandoc@v1
       - name: Convert md to html
         run: |
-          cd docs
+          pwd
+          ls
           pandoc index.md -t html -ascii -o index.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
