@@ -47,7 +47,7 @@ jobs:
         run: |
           pwd
           ls
-          pandoc index.md -t html -ascii -o index.html
+          pandoc index.md -t html --ascii -o index.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
