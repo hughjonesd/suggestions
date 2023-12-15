@@ -9,7 +9,7 @@ TODO:
   - automatically recognize numbers of +/-/% *
   - maybe also arbitrary strings embedded as "suggs add ++{ }++" or such
 - writing a README and justification *
-- bug: author followed by newline removes newline
+- bug: author followed by newline removes newline *
     Problem is that this:
 
     xxx
@@ -22,7 +22,18 @@ TODO:
 
     xxx
     blah xxx
-    
+
+    But note that it's ok if you put this:
+
+    xxx
+    ++[
+    blah 
+    @foo
+    ]++ 
+    xxx
+
+    So I think maybe people can learn? Make it an issue.
+
 - split binary from library
 - vim syntax?
 - allow stdin as input to old/new
@@ -34,14 +45,17 @@ TODO:
 
 - make author a &str, understand this stuff better
 - visitor pattern?
+    - something like "visit each node and replace tags with the following
+      (either string or closure)"
 
 - optionally sign output of diff DONE
 - rename changetxt DONE
 - accept/reject commands work on file in place DONE
 - colorized output DONE
-- ban nesting inside comments DON
+- ban nesting inside comments DONE
 - strip whitespace if @handle, opener, or closer is only thing on a line. DONE
 - integration tests DONE
+- trousers DONE
 */
 
 mod node;
@@ -83,6 +97,9 @@ enum Commands {
     Accept {file: String},
     /// Print suggestions FILE, highlight changes and comments
     Colorize {file: String},
+
+    #[command(hide = true)]
+    Trousers {},
 }
 
 #[derive(Args)]
@@ -117,7 +134,17 @@ fn main() -> Result<()> {
         Commands::Colorize{file} => {
             command_colorize(file)
         },
+        Commands::Trousers{} => {
+            command_trousers()
+        }
     }
+}
+
+
+fn command_trousers() -> Result<()> {
+    println!("Oh what fun we had!");
+    println!("But at the time it seemed so bad");
+    Ok(())
 }
 
 
