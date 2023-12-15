@@ -42,7 +42,7 @@ jobs:
         id: pages
         uses: actions/configure-pages@v4
       - name: Install pandoc
-        uses: r-lib/actions/setup-pandoc@v1
+        uses: r-lib/actions/setup-pandoc@v2
       - name: Convert md to html
         run: |
           cd docs
