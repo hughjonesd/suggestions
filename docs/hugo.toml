@@ -1,0 +1,14 @@
+baseURL = 'https://example.org/'
+languageCode = 'en-us'
+title = 'Suggestions files'
+theme = 'hugo-book'
+
+[params]
+	mode="auto"
+	useCDN=false
+	subtitle = "A simple, human-readable diff and comment format"
+
+[[params.social]]
+name = "GitHub"
+icon = "github"
+url = "https://github.com/hughjonesd/suggestions"
