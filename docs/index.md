@@ -16,7 +16,7 @@ Many word processors have built-in change management.
 Authors can suggest changes and add comments,
 then an editor can accept or reject them.
 
-![Word screenshot](word-screenshot.png "Track changes in Microsoft Word"){width=75%}
+![Word screenshot](word-screenshot.png "Track changes in Microsoft Word"){width=100%}
 
 People who write documents using text-file-based formats like **TeX** or
 **markdown** have a problem: text files don't
