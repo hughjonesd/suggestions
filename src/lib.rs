@@ -38,11 +38,12 @@ pub fn make_node_from_file(path: &String) -> Result<Node> {
     make_node_from_string(text)
 }
 
-/// Make a Node from a string representing suggestions
+/// Make a Node from a string representing suggestions.
 /// 
 /// # Examples
 /// 
 /// ```
+/// # use suggestions::make_node_from_string;
 /// let text = String::from(
 ///     "Original text. ++[An addition.]++--[A deletion]-- More original text.");
 /// let node = make_node_from_string(text);
@@ -157,18 +158,21 @@ fn fix_newlines(mut remainder: String) -> String {
     remainder
 }
 
-/// Return the difference between two files in suggestions format
+/// Return the difference between two files in suggestions format.
 /// 
 /// # Examples
 /// 
-/// ```
-/// let suggestions = make_suggestions_from_diff(old_file, new_file);
+/// ```rust
+/// # use suggestions::make_suggestions_from_diff;
+/// # let old_file = "resources/old.txt";
+/// # let new_file = "resources/new.txt";
+/// let suggestions = make_suggestions_from_diff(old_file, new_file, None);
 /// ```
 /// 
 pub fn make_suggestions_from_diff(
-    path_old: &String, 
-    path_new: &String, 
-    author: &Option<String>
+    path_old: &str, 
+    path_new: &str, 
+    author: Option<String>
 ) -> io::Result<String> {
     let mut file_old = File::open(path_old)?;
     let mut file_new = File::open(path_new)?;
@@ -185,7 +189,7 @@ pub fn make_suggestions_from_diff(
 }
 
 
-fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: &Option<String>) -> Node {
+fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: Option<String>) -> Node {
     let author_string = if let Some(author) = author {
         Some(format!(" {} ", author))
     } else {

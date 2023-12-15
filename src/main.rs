@@ -7,6 +7,14 @@ TODO:
 
 - build binaries *
 - document library *
+  - clean it up, e.g. have an add() method
+- allow --[ Deleted text // Added text ]++.
+  - Note, this isn't gonna happen when people do addition first.
+    It's most useful for deletions. 
+    - Should you worry whether the ending tag is ]++ or ]--?
+      People will probably forget if you make it be ]++.
+      So I think --[ Deletion // Addition ]-- is the most natural format.
+      Maybe you should warn if they put ]++ at the end. 
 - allow variable opening/closing tags
   - automatically recognize numbers of +/-/% *
   - maybe also arbitrary strings embedded as "suggs add ++{ }++" or such
@@ -149,7 +157,7 @@ fn command_diff(old: &String, new: &String, author: &Option<String>) -> Result<(
         ensure_canonical_author(&mut a);
         a
     });
-    let result = make_suggestions_from_diff(old, new, &author_canon)?;
+    let result = make_suggestions_from_diff(old, new, author_canon)?;
     Ok(println!("{}", result))
 }
 
