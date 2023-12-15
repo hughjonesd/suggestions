@@ -5,7 +5,7 @@ theme="hugo-book"
 [params]
 	mode="auto"
 	useCDN=false
-	subtitle = "Minimal and Clean [blog theme for Hugo](https://github.com/athul/archie)"
+	subtitle = "A simple, human-readable diff and comment format"
 
 
 [[menu.main]]
