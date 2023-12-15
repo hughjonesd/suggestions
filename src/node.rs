@@ -171,17 +171,6 @@ pub const OPENERS: [&str; 3] = ["++[", "--[", "%%["];
 pub const CLOSERS: [&str; 3]  = ["]++", "]--", "]%%"];
 
 
-pub fn ensure_canonical_author(author: &mut String) {
-   if ! author.starts_with('@') {
-     author.insert(0, '@')
-   }
-   let re = Regex::new(r"^\S+$").unwrap();
-   if ! re.is_match(author) {
-        panic!("Author '{}' contained space characters", author);
-   }
-}
-
-
 impl Chunk {
     fn leave_to_string(&self) -> String {
         match self {
@@ -232,23 +221,4 @@ fn test_can_use_structure() {
 
     let s = root_node.leave_to_string();
     println!("{:?}", s);
-}
-
-
-#[test]
-fn test_ensure_canonical_author() {
-    let mut x = "author".to_string();
-    ensure_canonical_author(&mut x);
-    assert_eq!(x, "@author");
-
-    let mut y = "@author".to_string();
-    ensure_canonical_author(&mut y);
-    assert_eq!(y, "@author");
-}
-
-#[test]
-#[should_panic]
-fn test_ensure_canonical_author_2() {
-    let mut problematic = "@author with spaces".to_string();
-    ensure_canonical_author(&mut problematic);
 }

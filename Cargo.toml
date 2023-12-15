@@ -1,11 +1,19 @@
 [package]
-name = "suggs"
+name = "suggestions"
 version = "0.1.0"
 edition = "2021"
 authors = ["David Hugh-Jones <davidhughjones@gmail.com>"]
 description = "A simple, human-readable diff and comment format"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "suggestions"
+path = "src/lib.rs"
+
+[[bin]]
+name = "suggs"
+path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.75"
