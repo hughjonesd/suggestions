@@ -1,6 +1,9 @@
 # Sample workflow for building and deploying a Hugo site to GitHub Pages
 name: Deploy Hugo site to Pages
 
+env:
+  ACTIONS_RUNNER_DEBUG: true
+
 on:
   # Runs on pushes targeting the default branch
   push:
@@ -55,7 +58,7 @@ jobs:
           HUGO_ENV: production
         working-directory: ./docs
         run: |
-          hugo \
+          pwd && ls && hugo \
             --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
       - name: Upload artifact
