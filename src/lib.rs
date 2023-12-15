@@ -1,7 +1,22 @@
 
+//! # Suggestions
+//!
+//! 
+//! `suggestions` provides functions to handle the 
+//! [suggestions](https://hughjonesd.github.io/suggestions)
+//! format.
+//! 
+//! Suggestions is a simple, human-readable diff 
+//! and comment format.
+//! 
+//! The crate also builds the `suggs` 
+//! binary to work with suggestions
+//! files on the command line.
+
 
 mod node;
 
+pub use node::{Node, NodeKind, Chunk};
 use node::*;
 
 use similar::{Algorithm, ChangeTag};
@@ -16,11 +31,6 @@ use std::io::Read;
 use regex::Regex;
 
 
-pub fn print_suggestions_to_file(string: String, path: &String) -> Result<()> {
-    Ok(std::fs::write(path.as_str(), string.as_str())?)
-}
-
-
 pub fn make_node_from_file(path: &String) -> Result<Node> {
     let mut file = File::open(path)?;
     let mut text = String::new();
@@ -28,7 +38,19 @@ pub fn make_node_from_file(path: &String) -> Result<Node> {
     make_node_from_string(text)
 }
 
-
+/// Make a Node from a string representing suggestions
+/// 
+/// # Examples
+/// 
+/// ```
+/// let text = String::from(
+///     "Original text. ++[An addition.]++--[A deletion]-- More original text.");
+/// let node = make_node_from_string(text);
+/// ```
+/// 
+/// # Errors
+/// 
+/// Returns an error if the string was not a valid suggestions file.
 pub fn make_node_from_string(mut text: String) -> Result<Node> {
     let root = Node::root();
     // The vector of nodes that we are "in".
@@ -87,7 +109,7 @@ pub fn make_node_from_string(mut text: String) -> Result<Node> {
             if OPENERS.contains(&tag) {
                 // Create a node of the opener's type, add it to the context
                 let nn_kind = match tag {
-                    "++[" => NodeKind::Insertion,
+                    "++[" => NodeKind::Addition,
                     "--[" => NodeKind::Deletion,
                     "%%[" => NodeKind::Comment,
                     _     => panic!("Weird opening tag {:?}", tag)
@@ -125,7 +147,7 @@ pub fn make_node_from_string(mut text: String) -> Result<Node> {
 }
 
 
-pub fn fix_newlines(mut remainder: String) -> String {
+fn fix_newlines(mut remainder: String) -> String {
     // if tag is on its own on a line:
     let re_opening_ws = Regex::new(r"^\s*?\n").unwrap();
     if re_opening_ws.is_match(remainder.as_str()) {
@@ -135,6 +157,14 @@ pub fn fix_newlines(mut remainder: String) -> String {
     remainder
 }
 
+/// Return the difference between two files in suggestions format
+/// 
+/// # Examples
+/// 
+/// ```
+/// let suggestions = make_suggestions_from_diff(old_file, new_file);
+/// ```
+/// 
 pub fn make_suggestions_from_diff(
     path_old: &String, 
     path_new: &String, 
@@ -150,12 +180,12 @@ pub fn make_suggestions_from_diff(
     let diffs = diff_words(Algorithm::Myers, &contents_old, &contents_new);
 
     let nd = make_node_from_diffs(diffs, author);
-    let output = nd.leave_to_string();
+    let output = nd.to_string_suggestion();
     Ok(output) 
 }
 
 
-pub fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: &Option<String>) -> Node {
+fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: &Option<String>) -> Node {
     let author_string = if let Some(author) = author {
         Some(format!(" {} ", author))
     } else {
@@ -171,7 +201,7 @@ pub fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: &Option<Str
             },
             (ChangeTag::Insert, text) => {
                 let nd = Node {
-                    kind: NodeKind::Insertion,
+                    kind: NodeKind::Addition,
                     contents: vec![Chunk::TextChunk(text.to_string())],
                     author_string: author_string.clone()
                 };
@@ -191,36 +221,3 @@ pub fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: &Option<Str
 
     root
 }
-
-
-pub fn ensure_canonical_author(author: &mut String) {
-    if ! author.starts_with('@') {
-      author.insert(0, '@')
-    }
-    let re = Regex::new(r"^\S+$").unwrap();
-    if ! re.is_match(author) {
-         panic!("Author '{}' contained space characters", author);
-    }
- }
-
-
-
-
-#[test]
-fn test_ensure_canonical_author() {
-    let mut x = "author".to_string();
-    ensure_canonical_author(&mut x);
-    assert_eq!(x, "@author");
-
-    let mut y = "@author".to_string();
-    ensure_canonical_author(&mut y);
-    assert_eq!(y, "@author");
-}
-
-#[test]
-#[should_panic]
-fn test_ensure_canonical_author_2() {
-    let mut problematic = "@author with spaces".to_string();
-    ensure_canonical_author(&mut problematic);
-}
- 

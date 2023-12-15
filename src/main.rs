@@ -5,10 +5,11 @@ TODO:
 
 * means priority
 
+- build binaries *
+- document library *
 - allow variable opening/closing tags
   - automatically recognize numbers of +/-/% *
   - maybe also arbitrary strings embedded as "suggs add ++{ }++" or such
-- writing a README and justification *
 - bug: author followed by newline removes newline *
     Problem is that this:
 
@@ -33,21 +34,26 @@ TODO:
     xxx
 
     So I think maybe people can learn? Make it an issue.
+    OTOH it's also true that the newline _before_ author stays in place.
 
-- split binary from library
+- BUG: 
+    suggs diff old.txt new.txt > diff.txt
+    suggs old diff.txt
+  adds newlines at the end. The diff adds one line. old (or new) adds a second line.
+
 - vim syntax?
 - allow stdin as input to old/new
 - tex output
 - options: handling comments 
   - options to strip or keep; maybe separate command*
-- testing: 
-  - more wrongitude
 
 - make author a &str, understand this stuff better
 - visitor pattern?
     - something like "visit each node and replace tags with the following
       (either string or closure)"
 
+- write README DONE
+- split binary from library DONE      
 - optionally sign output of diff DONE
 - rename changetxt DONE
 - accept/reject commands work on file in place DONE
@@ -59,13 +65,10 @@ TODO:
 */
 
 
-
-
 use suggestions::*;
-
 use clap::{Parser, Subcommand, Args};
-
 use anyhow::Result;
+use regex::Regex;
 
 
 #[derive(Parser)]
@@ -153,38 +156,54 @@ fn command_diff(old: &String, new: &String, author: &Option<String>) -> Result<(
 
 fn command_old(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
-    let suggs = node.reject_to_string();
+    let suggs = node.to_string_reject();
     Ok(println!("{}", suggs))
 }
 
 
 fn command_new(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
-    let suggs = node.accept_to_string();
+    let suggs = node.to_string_accept();
     Ok(println!("{}", suggs))
 }
 
 
 fn command_colorize(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
-    let suggs = node.leave_to_colorized();
+    let suggs = node.to_colored_string();
     Ok(println!("{}", suggs))
 }
 
 
 fn command_reject(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
-    let suggs = node.reject_to_string();
+    let suggs = node.to_string_reject();
     Ok(print_suggestions_to_file(suggs, path)?)
 }
 
 
 fn command_accept(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
-    let suggs = node.accept_to_string();
+    let suggs = node.to_string_accept();
     Ok(print_suggestions_to_file(suggs, path)?)
 }
 
+
+
+fn ensure_canonical_author(author: &mut String) {
+    if ! author.starts_with('@') {
+      author.insert(0, '@')
+    }
+    let re = Regex::new(r"^\S+$").unwrap();
+    if ! re.is_match(author) {
+         panic!("Author '{}' contained space characters", author);
+    }
+ } 
+
+
+fn print_suggestions_to_file(string: String, path: &String) -> Result<()> {
+    Ok(std::fs::write(path.as_str(), string.as_str())?)
+}
 
 
 #[cfg(test)]
@@ -227,17 +246,21 @@ mod tests {
     }
 
     #[test]
-    fn test_can_diff_files() {
-        let path_old = "resources/old.txt".to_string();
-        let path_new = "resources/new.txt".to_string();
+    fn test_ensure_canonical_author() {
+        let mut x = "author".to_string();
+        ensure_canonical_author(&mut x);
+        assert_eq!(x, "@author");
 
-        let test_output = make_suggestions_from_diff(&path_old, &path_new, &None).unwrap();
-        let expected_output = "A ++[new ]++sentence.\n";
-        assert_eq!(test_output, expected_output);
+        let mut y = "@author".to_string();
+        ensure_canonical_author(&mut y);
+        assert_eq!(y, "@author");
+    }
 
-        let author = Some("@author1".to_string());
-        let test_output = make_suggestions_from_diff(&path_old, &path_new, &author).unwrap();
-        let expected_output = "A ++[new  @author1 ]++sentence.\n";
-        assert_eq!(test_output, expected_output);
+    #[test]
+    #[should_panic]
+    fn test_ensure_canonical_author_2() {
+        let mut problematic = "@author with spaces".to_string();
+        ensure_canonical_author(&mut problematic);
     }
 }
+

@@ -1,1 +1,1 @@
-A sentence.
+The previous sentence.

@@ -1,6 +1,7 @@
 
 use std::process::{Command, Output};
 use std::string::String;
+use insta::assert_snapshot;
 
 fn suggs_output(args: &[&str]) -> String {
     println!("---------------------------------");
@@ -23,22 +24,35 @@ fn suggs_test_error(args: &[&str], error_str: &str) {
 
 #[test]
 fn test_simple() {
-    println!("{}", suggs_output(&["old", "resources/suggestions-simple.txt"]));
-    println!("{}", suggs_output(&["new", "resources/suggestions-simple.txt"]));
+    assert_snapshot!(suggs_output(&["old", "resources/suggestions-simple.txt"]));
+    assert_snapshot!(suggs_output(&["new", "resources/suggestions-simple.txt"]));
 }
 
 
 #[test]
 fn test_multiline() {
-    println!("{}", suggs_output(&["old", "resources/suggestions-multiline.txt"]));
-    println!("{}", suggs_output(&["new", "resources/suggestions-multiline.txt"]));
+    assert_snapshot!(suggs_output(&["old", "resources/suggestions-multiline.txt"]));
+    assert_snapshot!(suggs_output(&["new", "resources/suggestions-multiline.txt"]));
 }
 
 
 #[test]
 fn test_nested() {
-    println!("{}", suggs_output(&["old", "resources/suggestions-nested.txt"]));
-    println!("{}", suggs_output(&["new", "resources/suggestions-nested.txt"]));
+    assert_snapshot!(suggs_output(&["old", "resources/suggestions-nested.txt"]));
+    assert_snapshot!(suggs_output(&["new", "resources/suggestions-nested.txt"]));
+}
+
+
+#[test]
+fn test_colorize() {
+    assert_snapshot!(suggs_output(&["colorize", "resources/suggestions-simple.txt"]));
+}
+
+
+#[test]
+fn test_diff() {
+    assert_snapshot!(suggs_output(&["diff", "resources/old.txt", "resources/new.txt"]));
+    assert_snapshot!(suggs_output(&["diff", "--author", "author1", "resources/old.txt", "resources/new.txt"]));
 }
 
 

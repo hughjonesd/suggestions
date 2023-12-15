@@ -1,29 +1,39 @@
 
 use colored::*;
-use regex::Regex;
 
+
+/// A Node represents a particular addition, deletion or comment in 
+/// a suggestions file. A whole file is a tree of Nodes.
+/// 
+///  
 pub struct Node {
     /// `author_string` includes spaces, so it can be included directly
-    /// without changing the output. See `author_clean()` below.
+    /// without changing the output. See [`Self::author_clean()`] below.
     pub author_string: Option<String>,
+    /// A vector of [Chunk] objects representing the Node's contents.
     pub contents: Vec<Chunk>,
+    /// The Node's [NodeKind]
     pub kind: NodeKind
 }
 
 #[derive(PartialEq)]
 pub enum NodeKind {
     Root,
-    Insertion,
+    Addition,
     Deletion,
     Comment
 }
 
+/// Chunks are pieces of contents within a Node. They can either be 
+/// TextChunks containing text, or NodeChunks containing another
+/// Node.
 pub enum Chunk {
     TextChunk(String),
     NodeChunk(Node)
 }
 
 impl Node {
+    /// Returns an empty root Node representing an entire document
     pub fn root() -> Node {
         Node {
             kind: NodeKind::Root,
@@ -32,20 +42,24 @@ impl Node {
         }
     }
 
+    /// Returns `Some<author>` if the node has an author,
+    /// with author trimmed of whitespace. Returns `None`
+    /// if there is no author.
     pub fn author_clean(&self) -> Option<String> {
         self.author_string
             .clone()
             .map(|a| a.trim().to_string())
     }
 
-    pub fn accept_to_string (&self) -> String {
-        // if type is Insertion or Root, send contents
+    /// Return a string representing the Node with all changes accepted.
+    pub fn to_string_accept (&self) -> String {
+        // if type is Addition or Root, send contents
         // if type is Deletion or Comment return nothing
         if let NodeKind::Deletion | NodeKind::Comment = self.kind {
             "".to_string()
         } else {
             let content_strings: Vec<String> = self.contents.iter().map(
-                |chunk| chunk.accept_to_string()
+                |chunk| chunk.to_string_accept()
             ).collect();
             let mut output = "".to_string();
             for s in content_strings {
@@ -55,14 +69,15 @@ impl Node {
         }
     }
 
-    pub fn reject_to_string(&self) -> String {
+    /// Return a string representing the Node with all changes rejected.
+    pub fn to_string_reject(&self) -> String {
         // if type is Deletion or Root, send contents
-        // if type is Insertion or Comment return nothing without delegating
-        if let NodeKind::Insertion | NodeKind::Comment = self.kind {
+        // if type is Addition or Comment return nothing without delegating
+        if let NodeKind::Addition | NodeKind::Comment = self.kind {
             "".to_string()
         } else {
             let content_strings: Vec<String> = self.contents.iter().map(
-                |chunk| chunk.reject_to_string()
+                |chunk| chunk.to_string_reject()
             ).collect();
             let mut output = "".to_string();
             for s in content_strings {
@@ -72,12 +87,13 @@ impl Node {
         }
     }
 
-    pub fn leave_to_string(&self) -> String {
+    /// Return a String representing the Node in suggestions format
+    pub fn to_string_suggestion(&self) -> String {
         let op = opener(&self.kind);
         let cl = closer(&self.kind);
         
         let content_strings: Vec<String> = self.contents.iter().map(
-            |ch| ch.leave_to_string()
+            |ch| ch.to_string_suggestion()
         ).collect();
 
         let mut output = "".to_string();
@@ -97,10 +113,10 @@ impl Node {
     }
 
 
-    pub fn leave_to_colorized(&self) -> ColoredString {
+    pub fn to_colored_string(&self) -> ColoredString {
         let my_color = match self.kind {
             NodeKind::Comment => "cyan",
-            NodeKind::Insertion => "green",
+            NodeKind::Addition => "green",
             NodeKind::Deletion  => "red",
             NodeKind::Root => "black" // we'll just clear it later
         };
@@ -111,7 +127,7 @@ impl Node {
         let mut content_strings: Vec<ColoredString> = self.contents.iter().map(
             |ch| {
                 let cs = match ch {
-                    Chunk::NodeChunk(nd) => nd.leave_to_colorized(),
+                    Chunk::NodeChunk(nd) => nd.to_colored_string(),
                     Chunk::TextChunk(text) => text.color(my_color)
                 };
                 match self.kind {
@@ -147,20 +163,22 @@ impl Node {
 } 
 
 
+/// Returns the opening tags for a given kind of Node
 pub fn opener(nk: &NodeKind) -> &str {
     match nk {
         NodeKind::Root => "",
-        NodeKind::Insertion => "++[",
+        NodeKind::Addition => "++[",
         NodeKind::Deletion => "--[",
         NodeKind::Comment => "%%["
     }
 }
 
 
+/// Returns the closing tags for a given kind of Node
 pub fn closer(nk: &NodeKind) -> &str {
     match nk {
         NodeKind::Root => "",
-        NodeKind::Insertion => "]++",
+        NodeKind::Addition => "]++",
         NodeKind::Deletion => "]--",
         NodeKind::Comment => "]%%"
     }
@@ -172,25 +190,25 @@ pub const CLOSERS: [&str; 3]  = ["]++", "]--", "]%%"];
 
 
 impl Chunk {
-    fn leave_to_string(&self) -> String {
+    fn to_string_suggestion(&self) -> String {
         match self {
             Chunk::TextChunk(text) => text.clone(),
-            Chunk::NodeChunk(node) => node.leave_to_string()
+            Chunk::NodeChunk(node) => node.to_string_suggestion()
         }
     }
 
-    fn accept_to_string(&self) -> String {
+    fn to_string_accept(&self) -> String {
         match self {
             Chunk::TextChunk(text) => text.clone(),
-            Chunk::NodeChunk(node) => node.accept_to_string()
+            Chunk::NodeChunk(node) => node.to_string_accept()
         }
     }
 
-    // text chunk is still being rejected
-    fn reject_to_string(&self) -> String {
+    // text chunk is still being rejected if this is called
+    fn to_string_reject(&self) -> String {
         match self {
             Chunk::TextChunk(text) => text.clone(),
-            Chunk::NodeChunk(node) => node.reject_to_string()
+            Chunk::NodeChunk(node) => node.to_string_reject()
         }
     }
 }
@@ -210,7 +228,7 @@ fn test_can_use_structure() {
     };
     let n2 = Node {
         contents: vec![insch],
-        kind: NodeKind::Insertion,
+        kind: NodeKind::Addition,
         author_string: None
     };
     let root_node = Node {
@@ -219,6 +237,6 @@ fn test_can_use_structure() {
         author_string: None
     };
 
-    let s = root_node.leave_to_string();
+    let s = root_node.to_string_suggestion();
     println!("{:?}", s);
 }
