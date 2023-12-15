@@ -42,11 +42,10 @@ jobs:
         id: pages
         uses: actions/configure-pages@v4
       - name: Install pandoc
-i       uses: r-lib/actions/setup-pandoc@v1
-        with:
-          pandoc-version: '3.1.10' # The pandoc version to download (if necessary) and use.
+        uses: r-lib/actions/setup-pandoc@v1
       - name: Convert md to html
-        runs: pandoc index.md -t html -ascii -o index.html
+        run: |
+          pandoc index.md -t html -ascii -o index.html
         with:
           path: docs/
       - name: Upload artifact
