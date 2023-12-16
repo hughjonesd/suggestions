@@ -157,42 +157,42 @@ fn command_diff(old: &str, new: &str, author: &Option<String>) -> Result<()> {
 }
 
 
-fn command_old(path: &String) -> Result<()> {
+fn command_old(path: &str) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.to_string_reject();
     Ok(println!("{}", suggs))
 }
 
 
-fn command_new(path: &String) -> Result<()> {
+fn command_new(path: &str) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.to_string_accept();
     Ok(println!("{}", suggs))
 }
 
 
-fn command_colorize(path: &String) -> Result<()> {
+fn command_colorize(path: &str) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.to_colored_string();
     Ok(println!("{}", suggs))
 }
 
 
-fn command_reject(path: &String) -> Result<()> {
+fn command_reject(path: &str) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.to_string_reject();
     print_suggestions_to_file(suggs, path)
 }
 
 
-fn command_accept(path: &String) -> Result<()> {
+fn command_accept(path: &str) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.to_string_accept();
     print_suggestions_to_file(suggs, path)
 }
 
 
-fn command_tex(path: &String) -> Result<()> {
+fn command_tex(path: &str) -> Result<()> {
     let node = make_node_from_file(path)?;
     let tex = node.to_string_tex()?;
 
