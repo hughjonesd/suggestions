@@ -77,8 +77,7 @@ pub fn make_node_from_string(mut text: String) -> Result<Node> {
         ";
     let re = Regex::new(re_string).unwrap();
     
-    while text.len() > 0 {
-        // read chunks up to the next marker (or EOF)
+    while ! text.is_empty() {        // read chunks up to the next marker (or EOF)
         text = {
             let caps = re.captures(&text).unwrap(); 
             let mut chunk_text = caps["chunk_text"].to_string();
@@ -90,7 +89,7 @@ pub fn make_node_from_string(mut text: String) -> Result<Node> {
                 remainder = fix_newlines(remainder);
             }
 
-            if author_string.len() > 0 {
+            if ! author_string.is_empty() {
                 if CLOSERS.contains(&tag) {
                     context.last_mut().unwrap().author_string = 
                         Some(author_string.to_string());
@@ -102,7 +101,7 @@ pub fn make_node_from_string(mut text: String) -> Result<Node> {
                 }
             }
 
-            if chunk_text != "" {
+            if ! chunk_text.is_empty() {
                 let tc = Chunk::TextChunk(chunk_text);
                 context.last_mut().unwrap().contents.push(tc);
             }
@@ -190,11 +189,7 @@ pub fn make_suggestions_from_diff(
 
 
 fn make_node_from_diffs(changes: Vec<(ChangeTag, &str)>, author: Option<String>) -> Node {
-    let author_string = if let Some(author) = author {
-        Some(format!(" {} ", author))
-    } else {
-        None
-    };
+    let author_string = author.map(|a| format!(" {} ", a));
 
     let mut root = Node::root();
     

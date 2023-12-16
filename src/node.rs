@@ -66,9 +66,9 @@ impl Node {
                 Chunk::TextChunk(string) => anyhow::Ok(string.clone()),
                 Chunk::NodeChunk(nd)  => nd.to_string_visit(visitor)
             }?;
-            text = text + r.as_str();
+            text += r.as_str();
         }
-        text = text + open_close.1.as_str();
+        text += open_close.1.as_str();
 
         Ok(text)
     }
