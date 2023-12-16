@@ -1,0 +1,19 @@
+---
+source: tests/test-cli.rs
+expression: "suggs_output(&[\"new\", \"resources/suggestions-simple.txt\"])"
+---
+
+A plain text file with some simple changes.
+
+Some text. An insertion. More text.
+
+Some text. A signed insertion. More text.
+
+Some text.  More text.
+
+Some text.  More text.
+
+Some text.  More text.
+
+Some text.  More text.
+

@@ -1,0 +1,7 @@
+---
+source: tests/test-cli.rs
+expression: "suggs_output(&[\"diff\", \"--author\", \"author1\", \"resources/old.txt\",\n                \"resources/new.txt\"])"
+---
+The --[previous @author1 ]--++[new @author1 ]++ sentence.
+
+

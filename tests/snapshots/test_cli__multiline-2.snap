@@ -1,0 +1,26 @@
+---
+source: tests/test-cli.rs
+expression: "suggs_output(&[\"new\", \"resources/suggestions-multiline.txt\"])"
+---
+A text file with some multiline changes.
+
+A paragraph of ordinary text.
+A multiline addition. The addition spans
+two lines.
+The text paragraph continues.
+A multiline addition. The addition spans
+two lines. It is signed. 
+The text paragraph concludes.
+
+A paragraph of ordinary text. 
+The text paragraph concludes.
+
+A paragraph of ordinary text. 
+The text paragraph concludes.
+
+A paragraph of ordinary text.
+A multiline addition.  The 
+addition spans two lines.
+The text paragraph continues.
+
+

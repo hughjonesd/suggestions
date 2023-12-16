@@ -1,0 +1,35 @@
+---
+source: tests/test-cli.rs
+expression: "suggs_output(&[\"old\", \"resources/suggestions-nested.txt\"])"
+---
+A text file with nested changes.
+
+Some text.  More text.
+
+Some text.  More text.
+
+Some text.  More text.
+
+Some text. A deletion. More deletion. More text.
+
+Some text. A deletion.A nested deletion. More deletion. More text.
+
+Some text. A deletion. More d. More text.
+
+Some text.  More text.
+
+Some text.  More text.
+
+Some text.  More text.
+
+
+
+
+A multiline signed deletion.
+
+
+A multiline signed deletion.
+A signed nested deletion.
+
+
+

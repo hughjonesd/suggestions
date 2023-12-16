@@ -1,0 +1,7 @@
+---
+source: tests/test-cli.rs
+expression: "suggs_output(&[\"diff\", \"resources/old.txt\", \"resources/new.txt\"])"
+---
+The --[previous]--++[new]++ sentence.
+
+

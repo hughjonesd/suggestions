@@ -1,0 +1,37 @@
+---
+source: tests/test-cli.rs
+expression: "suggs_output(&[\"new\", \"resources/suggestions-nested.txt\"])"
+---
+A text file with nested changes.
+
+Some text. An insertion.A nested insertion. More insertion. More text.
+
+Some text. An insertion. More insertion. More text.
+
+Some text. An insertion. More insertion. More text.
+
+Some text.  More text.
+
+Some text.  More text.
+
+Some text.  More text.
+
+Some text. An insertion.A nested insertion. More insertion. More text.
+
+Some text. An insertion. More insertion. More text.
+
+Some text. An insertion. More insertion. More text.
+
+A multiline signed insertion.
+A signed nested insertion.
+
+A multiline signed insertion.
+
+
+A multiline signed insertion.
+
+
+
+
+
+

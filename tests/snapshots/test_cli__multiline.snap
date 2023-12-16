@@ -1,0 +1,22 @@
+---
+source: tests/test-cli.rs
+expression: "suggs_output(&[\"old\", \"resources/suggestions-multiline.txt\"])"
+---
+A text file with some multiline changes.
+
+A paragraph of ordinary text.
+The text paragraph continues.
+The text paragraph concludes.
+
+A paragraph of ordinary text. 
+Originally it spanned four lines.
+Now the middle two lines have been deleted.
+The text paragraph concludes.
+
+A paragraph of ordinary text. 
+The text paragraph concludes.
+
+A paragraph of ordinary text.
+The text paragraph continues.
+
+

@@ -1,0 +1,14 @@
+---
+source: tests/test-cli.rs
+expression: "suggs_output(&[\"tex\", \"resources/suggestions-tex.tex\"])"
+---
+\documentclass{article}
+
+\usepackage{color}
+\usepackage{ulem}
+\begin{document}
+  Some plain text. {\color{blue}An addition.} {\color{red}\sout{A deletion.}} \fcolorbox{black}{yellow}{A comment.}
+  More plain text.
+
+\end{document}
+
