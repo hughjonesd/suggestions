@@ -16,7 +16,7 @@ pub struct Node {
     pub kind: NodeKind
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum NodeKind {
     Root,
     Addition,
@@ -185,8 +185,8 @@ pub fn closer(nk: &NodeKind) -> &str {
 }
 
 
-pub const OPENERS: [&str; 3] = ["++[", "--[", "%%["];
-pub const CLOSERS: [&str; 3]  = ["]++", "]--", "]%%"];
+pub const OPENERS: [&str; 4] = ["++[", "--[", "%%[", "//"];
+pub const CLOSERS: [&str; 4]  = ["]++", "]--", "]%%", "//"];
 
 
 impl Chunk {

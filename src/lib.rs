@@ -107,12 +107,33 @@ pub fn make_node_from_string(mut text: String) -> Result<Node> {
                 context.last_mut().unwrap().contents.push(tc);
             }
 
+            if CLOSERS.contains(&tag) {
+                let finished_node = context.pop().unwrap();
+                if let Some(cur_node) = context.last_mut() {
+                    let correct_closer = closer(&finished_node.kind);
+                    if tag != correct_closer && tag != "//" {
+                        bail!("Unmatched closing tag '{}', I was expecting '{}'.", tag, correct_closer);
+                    }
+                    if cur_node.kind == NodeKind::Comment {
+                        bail!("Comments cannot contain other tags.");
+                    }
+                    cur_node.contents.push(Chunk::NodeChunk(finished_node));
+                }
+            }
+
             if OPENERS.contains(&tag) {
                 // Create a node of the opener's type, add it to the context
                 let nn_kind = match tag {
                     "++[" => NodeKind::Addition,
                     "--[" => NodeKind::Deletion,
                     "%%[" => NodeKind::Comment,
+                    "//"  => match context
+                                    .last_mut()
+                                    .map_or(NodeKind::Root, |n| n.kind) {
+                                NodeKind::Deletion => NodeKind::Addition,
+                                NodeKind::Addition => NodeKind::Deletion,
+                                _ => panic!("'//' can only be used within additions or deletions")
+                            },
                     _     => panic!("Weird opening tag {:?}", tag)
                 };
                 let new_node = Node {
@@ -120,23 +141,12 @@ pub fn make_node_from_string(mut text: String) -> Result<Node> {
                     contents: Vec::new(),
                     kind : nn_kind
                 };
-                context.push(new_node);
+                context.push(new_node);  
+            } 
                 
-            } else { // tag is a closer or EOF
+            if tag.len() == 0 {
                 let finished_node = context.pop().unwrap();
-                if let Some(cur_node) = context.last_mut() {
-                    let correct_closer = closer(&finished_node.kind);
-                    if tag != correct_closer {
-                        bail!("Unmatched closing tag '{}', I was expecting '{}'.", tag, correct_closer);
-                    }
-                    if cur_node.kind == NodeKind::Comment {
-                        bail!("Comments cannot contain other tags.");
-                    }
-                    cur_node.contents.push(Chunk::NodeChunk(finished_node));
-                } else {
-                    // we're done, tag was EOF
-                    return Ok(finished_node);
-                }
+                return Ok(finished_node);
             }
 
             // assign to 'text'
@@ -144,7 +154,7 @@ pub fn make_node_from_string(mut text: String) -> Result<Node> {
         }; 
     }
 
-    panic!("Couldn't parse changetxt, was it empty?")
+    bail!("Couldn't parse text, was it empty?")
 }
 
 
@@ -152,7 +162,7 @@ fn fix_newlines(mut remainder: String) -> String {
     // if tag is on its own on a line:
     let re_opening_ws = Regex::new(r"^\s*?\n").unwrap();
     if re_opening_ws.is_match(remainder.as_str()) {
-            remainder = re_opening_ws.replace(remainder.as_str(), "").to_string();
+        remainder = re_opening_ws.replace(remainder.as_str(), "").to_string();
     } 
 
     remainder
