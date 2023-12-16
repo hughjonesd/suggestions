@@ -147,7 +147,7 @@ fn command_trousers() -> Result<()> {
 }
 
 
-fn command_diff(old: &String, new: &String, author: &Option<String>) -> Result<()> {
+fn command_diff(old: &str, new: &str, author: &Option<String>) -> Result<()> {
     let author_canon = author.clone().map(|mut a| {
         ensure_canonical_author(&mut a);
         a
@@ -181,14 +181,14 @@ fn command_colorize(path: &String) -> Result<()> {
 fn command_reject(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.to_string_reject();
-    Ok(print_suggestions_to_file(suggs, path)?)
+    print_suggestions_to_file(suggs, path)
 }
 
 
 fn command_accept(path: &String) -> Result<()> {
     let node = make_node_from_file(path)?;
     let suggs = node.to_string_accept();
-    Ok(print_suggestions_to_file(suggs, path)?)
+    print_suggestions_to_file(suggs, path)
 }
 
 
@@ -222,8 +222,8 @@ fn ensure_canonical_author(author: &mut String) {
  } 
 
 
-fn print_suggestions_to_file(string: String, path: &String) -> Result<()> {
-    Ok(std::fs::write(path.as_str(), string.as_str())?)
+fn print_suggestions_to_file(string: String, path: &str) -> Result<()> {
+    Ok(std::fs::write(path, string.as_str())?)
 }
 
 

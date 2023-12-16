@@ -31,7 +31,7 @@ use std::io::Read;
 use regex::Regex;
 
 
-pub fn make_node_from_file(path: &String) -> Result<Node> {
+pub fn make_node_from_file(path: &str) -> Result<Node> {
     let mut file = File::open(path)?;
     let mut text = String::new();
     file.read_to_string(&mut text)?;
