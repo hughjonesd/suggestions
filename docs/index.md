@@ -154,29 +154,30 @@ Download it here:
 Or [get the source on github](https://github.com/hughjonesd/suggestions).
 
 
-You can use `suggs` like this:
+### Usage
+
+Print a suggestions file with additions, deletions and comments shown in 
+color:
 
     suggs colorize file.txt
 
-Prints suggestions file *file.txt* with additions, deletions and comments shown in 
-color.
+Print *file.txt* with all suggestions accepted:
 
     suggs new file.txt
 
-Prints *file.txt* with all suggestions accepted.
+Print *file.txt* with all suggestions rejected:
 
     suggs old file.txt
 
-Prints *file.txt* with all suggestions rejected.
+Accept or reject all changes in-place, writing the result back to *file.txt*:
 
     suggs accept file.txt
     suggs reject file.txt
 
-Accepts or rejects all changes in-place, writing the result back to *file.txt*. 
+Create a suggestions file from the difference between *old.txt* and *new.txt*: 
 
     suggs diff old.txt new.txt
 
-Creates a suggestions file from the difference between *old.txt* and *new.txt*.
 
 
 ## Tips
