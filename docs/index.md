@@ -145,7 +145,16 @@ computers and code, not humans and text:
 
 There is a command line tool `suggs` for working with suggestions files.
 
-You can use it like this:
+Download it here:
+
+* [MacOS](https://github.com/hughjonesd/suggestions/releases/download/v0.1.0/suggestions_v0.1.0_x86_64-apple-darwin.zip)
+* [Windows](https://github.com/hughjonesd/suggestions/releases/download/v0.1.0/suggestions_v0.1.0_x86_64-pc-windows-gnu.zip)
+* [Linux](https://github.com/hughjonesd/suggestions/releases/download/v0.1.0/suggestions_v0.1.0_x86_64-unknown-linux-musl.tar.gz)
+
+Or [get the source on github](https://github.com/hughjonesd/suggestions).
+
+
+You can use `suggs` like this:
 
     suggs colorize file.txt
 
