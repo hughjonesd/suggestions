@@ -60,16 +60,6 @@ TODO:
     - something like "visit each node and replace tags with the following
       (either string or closure)"
 
-- write README DONE
-- split binary from library DONE      
-- optionally sign output of diff DONE
-- rename changetxt DONE
-- accept/reject commands work on file in place DONE
-- colorized output DONE
-- ban nesting inside comments DONE
-- strip whitespace if @handle, opener, or closer is only thing on a line. DONE
-- integration tests DONE
-- trousers DONE
 */
 
 
@@ -101,6 +91,8 @@ enum Commands {
     Accept {file: String},
     /// Print suggestions FILE, highlight changes and comments
     Colorize {file: String},
+    /// Print suggestions FILE with TeX highlighting
+    Tex {file: String},
 
     #[command(hide = true)]
     Trousers {},
@@ -137,6 +129,9 @@ fn main() -> Result<()> {
         },
         Commands::Colorize{file} => {
             command_colorize(file)
+        },
+        Commands::Tex{file} => {
+            command_tex(file)
         },
         Commands::Trousers{} => {
             command_trousers()
@@ -197,6 +192,24 @@ fn command_accept(path: &String) -> Result<()> {
 }
 
 
+fn command_tex(path: &String) -> Result<()> {
+    let node = make_node_from_file(path)?;
+    let tex = node.to_string_tex()?;
+
+    let tex = add_tex_dependencies(tex);
+    Ok(println!("{}", tex))
+}
+
+
+fn add_tex_dependencies(tex: String) -> String {
+    let begin_doc_re = Regex::new(r"\\begin\{document\}").unwrap();
+    let begin_with_uses = 
+    r"
+\usepackage{color}
+\usepackage{ulem}
+\begin{document}";
+    begin_doc_re.replace(tex.as_str(), begin_with_uses).to_string()
+}
 
 fn ensure_canonical_author(author: &mut String) {
     if ! author.starts_with('@') {

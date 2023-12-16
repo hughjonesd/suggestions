@@ -1,6 +1,6 @@
 
 use colored::*;
-
+use anyhow::Result;
 
 /// A Node represents a particular addition, deletion or comment in 
 /// a suggestions file. A whole file is a tree of Nodes.
@@ -50,6 +50,49 @@ impl Node {
             .clone()
             .map(|a| a.trim().to_string())
     }
+
+    pub fn to_string_visit (&self, 
+        visitor: fn(&Node) -> Result<(String, String)>
+    ) -> Result<String> 
+    {
+        // call function on self, add string
+        // get string from TextChunks
+        // call to_string_visit on each NodeChunk's node
+        let open_close = visitor(self)?;
+        let mut text = open_close.0;
+
+        for chunk in &self.contents {
+            let r = match chunk {
+                Chunk::TextChunk(string) => anyhow::Ok(string.clone()),
+                Chunk::NodeChunk(nd)  => nd.to_string_visit(visitor)
+            }?;
+            text = text + r.as_str();
+        }
+        text = text + open_close.1.as_str();
+
+        Ok(text)
+    }
+
+
+    pub fn to_string_tex(&self) -> Result<String> {
+        self.to_string_visit(Self::tex_visitor)
+    }
+    
+
+    fn tex_visitor(n: &Node) -> Result<(String, String)> {
+        let author_closer =  n.author_clean().unwrap_or(String::from(""));
+        let author_closer = author_closer + "}";
+        let author_closer = author_closer.as_str();
+        let r = match n.kind {
+            // requires color and ulem packages
+            NodeKind::Addition => (r"{\color{blue}", "}"),
+            NodeKind::Deletion => (r"{\color{red}\sout{", "}}"),
+            NodeKind::Comment => (r"\fcolorbox{black}{yellow}{", author_closer),
+            NodeKind::Root => ("", "")
+        };
+        Ok((r.0.to_string(), r.1.to_string()))
+    }
+
 
     /// Return a string representing the Node with all changes accepted.
     pub fn to_string_accept (&self) -> String {
@@ -238,5 +281,32 @@ fn test_can_use_structure() {
     };
 
     let s = root_node.to_string_suggestion();
+    println!("{:?}", s);
+}
+
+#[test]
+fn test_to_string_tex() {
+    let cch = Chunk::TextChunk("This is a comment. ".to_string());
+    let insch = Chunk::TextChunk("This is an insertion. ".to_string());
+    let startch = Chunk::TextChunk("Main text. ".to_string());
+    let endch = Chunk::TextChunk("More main text.".to_string());
+
+    let n = Node {
+        contents: vec![cch],
+        kind: NodeKind::Comment,
+        author_string: Some("@DHJ".to_string())
+    };
+    let n2 = Node {
+        contents: vec![insch],
+        kind: NodeKind::Addition,
+        author_string: None
+    };
+    let root_node = Node {
+        contents: vec![startch, Chunk::NodeChunk(n2), Chunk::NodeChunk(n), endch],
+        kind: NodeKind::Root,
+        author_string: None
+    };
+
+    let s = root_node.to_string_tex();
     println!("{:?}", s);
 }

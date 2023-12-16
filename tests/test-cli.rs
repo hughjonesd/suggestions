@@ -50,6 +50,12 @@ fn test_colorize() {
 
 
 #[test]
+fn test_tex() {
+    assert_snapshot!(suggs_output(&["tex", "resources/suggestions-tex.tex"]));
+}
+
+
+#[test]
 fn test_diff() {
     assert_snapshot!(suggs_output(&["diff", "resources/old.txt", "resources/new.txt"]));
     assert_snapshot!(suggs_output(&["diff", "--author", "author1", "resources/old.txt", "resources/new.txt"]));
