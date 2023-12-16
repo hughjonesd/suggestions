@@ -178,6 +178,9 @@ Create a suggestions file from the difference between *old.txt* and *new.txt*:
 
     suggs diff old.txt new.txt
 
+Print *file.txt* with changes highlighted as a TeX file:
+
+    suggs tex file.txt
 
 
 ## Tips
