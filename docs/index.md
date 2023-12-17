@@ -5,6 +5,7 @@ To rebuild index.md, run:
   pandoc index.md -t html --ascii -o index.html
 
 This should happen automatically via the "pandoc.yml" github action 
+
 -->
 
 <link rel="stylesheet" href="simple.css">
@@ -13,15 +14,14 @@ This should happen automatically via the "pandoc.yml" github action
 # Suggestions files
 
 A simple, human-readable format for suggesting changes to plain text files.
+
 <nav>
 * [Motivation](#motivation)
-* [Making suggestions](#making-suggestions)
-* [Reviewing suggestions](#reviewing-suggestions)
-* [Multiple authors](#multiple-authors-and-nested-suggestions)
-* [Why not just use diff?](#why-not-just-use-a-diff-file)
+* [File format](#file-format)
 * [Command line tool](#command-line-tool)
-* [Tips and tricks](#tips)
+* [Questions and comments](#questions-and-comments)
 </nav>
+
 </header>
 
 ## Motivation
@@ -47,7 +47,9 @@ of text file. You just edit the file as usual, and follow some
 simple rules.
 
 
-## Making suggestions
+## File format
+
+### Making suggestions
 
 To suggest new text to add to a file, enclose it in `++[` and `]++` tags like this:
 
@@ -66,7 +68,7 @@ To make a comment, enclose it in `%%[` and `[%%`:
 You can sign the comment with a `@handle` as the last word.
 
 
-## Reviewing suggestions
+### Reviewing suggestions
 
 To review suggestions:
 
@@ -105,8 +107,7 @@ if the addition is accepted, or
 if it is rejected.
 
 
-
-## Multiple authors and nested suggestions
+### Multiple authors and nested suggestions
 
 If multiple authors are working on a document, you may want to 
 sign your suggested changes. Do that by putting your handle
@@ -135,26 +136,6 @@ if you accept someone's deletion, any other suggestions inside it
 will be deleted and be irrelevant.
 
 
-## Why not just use a diff file?
-
-`diff` is a command that prints the difference between two text files.
-It's widely used in the computing world. But diffs are designed for 
-computers and code, not humans and text:
-
-* Diff output makes no sense without the original file. You can't read changes 
-  in their original context. A suggestions file shows additions and deletions
-  in context; it can be sent as an email attachment, read and understood.
-* Using and applying diffs requires command line tools. This is hard for
-  non-technical authors. Suggestions files 
-  don't require any command line tools, but you can 
-  [use one](https://github.com/hughjonesd/suggestions) if you like.
-* Diffs are typically line oriented. This makes them hard to read 
-  when only a word or phrase has changed.
-* You can't put comments and authorship in a diff file.
-* A diff file only shows one set of changes. A suggestions file can show changes by
-  multiple authors, including nested changes.
-
-
 ## Command line tool
 
 There is a command line tool `suggs` for working with suggestions files.
@@ -166,7 +147,6 @@ Download it here:
 * [Linux](https://github.com/hughjonesd/suggestions/releases/download/v0.1.0/suggestions_v0.1.0_x86_64-unknown-linux-musl.tar.gz)
 
 Or [get the source on github](https://github.com/hughjonesd/suggestions).
-
 
 ### Usage
 
@@ -197,7 +177,35 @@ Print *file.txt* with changes highlighted as a TeX file:
     suggs tex file.txt
 
 
-## Tips
+## Questions and comments
+
+
+### Why not just use a diff file?
+
+`diff` is a command that prints the difference between two text files.
+It's widely used in the computing world. But diffs are designed for 
+computers and code, not humans and text:
+
+* Diff output makes no sense without the original file. You can't read changes 
+  in their original context. A suggestions file shows additions and deletions
+  in context; it can be sent as an email attachment, read and understood.
+* Using and applying diffs requires command line tools. This is hard for
+  non-technical authors. Suggestions files 
+  don't require any command line tools, but you can 
+  [use one](https://github.com/hughjonesd/suggestions) if you like.
+* Diffs are typically line oriented. This makes them hard to read 
+  when only a word or phrase has changed.
+* You can't put comments and authorship in a diff file.
+* A diff file only shows one set of changes. A suggestions file can show changes by
+  multiple authors, including nested changes.
+
+
+### Comments
+
+If you have a comment or suggestion, file an [issue](https://github.com/hughjonesd/suggestions).
+
+
+### TeX tip
 
 If you write comments like
 
