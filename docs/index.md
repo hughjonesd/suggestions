@@ -148,9 +148,9 @@ suggested changes in extra-readable formats, like colorized text or TeX.
 
 Download it here:
 
-* [MacOS](https://github.com/hughjonesd/suggestions/releases/download/v0.1.0/suggestions_v0.1.0_x86_64-apple-darwin.zip)
-* [Windows](https://github.com/hughjonesd/suggestions/releases/download/v0.1.0/suggestions_v0.1.0_x86_64-pc-windows-gnu.zip)
-* [Linux](https://github.com/hughjonesd/suggestions/releases/download/v0.1.0/suggestions_v0.1.0_x86_64-unknown-linux-musl.tar.gz)
+* [MacOS](https://github.com/hughjonesd/suggestions/releases/download/v0.2.0/suggestions_v0.2.0_x86_64-apple-darwin.zip)
+* [Windows](https://github.com/hughjonesd/suggestions/releases/download/v0.2.0/suggestions_v0.2.0_x86_64-pc-windows-gnu.zip)
+* [Linux](https://github.com/hughjonesd/suggestions/releases/download/v0.2.0/suggestions_v0.2.0_x86_64-unknown-linux-musl.tar.gz)
 
 Or [get the source on github](https://github.com/hughjonesd/suggestions).
 
