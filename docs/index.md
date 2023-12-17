@@ -140,6 +140,12 @@ will be deleted and be irrelevant.
 
 There is a command line tool `suggs` for working with suggestions files.
 
+The purpose of `suggs` is to let you automate parts of the editing process. For
+example, you can edit a file, save a new version, then use `suggs` to create
+a suggestions file. Or you can take someone else's suggestions file and 
+quickly accept or reject all the changes. Lastly, `suggs` can display 
+suggested changes in extra-readable formats, like colorized text or TeX.
+
 Download it here:
 
 * [MacOS](https://github.com/hughjonesd/suggestions/releases/download/v0.1.0/suggestions_v0.1.0_x86_64-apple-darwin.zip)
