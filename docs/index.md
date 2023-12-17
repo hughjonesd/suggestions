@@ -61,7 +61,7 @@ To suggest a deletion from a file, enclose it in `--[` and `]--` tags like this:
     The original text, --[the section you want to delete,]-- 
     and more text.
 
-To make a comment, enclose it in `%%[` and `[%%`:
+To make a comment, enclose it in `%%[` and `]%%`:
 
     %%[ This clarifies the argument, right? @stephen ]%%
 
