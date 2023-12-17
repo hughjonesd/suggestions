@@ -4,11 +4,25 @@ To rebuild index.md, run:
 
   pandoc index.md -t html --ascii -o index.html
 
-
+This should happen automatically via the "pandoc.yml" github action 
 -->
+
 <link rel="stylesheet" href="simple.css">
 
+<header>
 # Suggestions files
+
+A simple, human-readable format for suggesting changes to plain text files.
+<nav>
+* [Motivation](#motivation)
+* [Making suggestions](#making-suggestions)
+* [Reviewing suggestions](#reviewing-suggestions)
+* [Multiple authors](#multiple-authors-and-nested-suggestions)
+* [Why not just use diff?](#why-not-just-use-a-diff-file)
+* [Command line tool](#command-line-tool)
+* [Tips and tricks](#tips)
+</nav>
+</header>
 
 ## Motivation
 
@@ -193,3 +207,6 @@ If you write comments like
 
 then TeX will also treat them as comments.
 
+<footer>
+© David Hugh-Jones 2023
+</footer>
