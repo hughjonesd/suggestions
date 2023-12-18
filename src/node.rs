@@ -1,6 +1,7 @@
 
 use colored::*;
 use anyhow::Result;
+use regex::Regex;
 
 /// A Node represents a particular addition, deletion or comment in 
 /// a suggestions file. A whole file is a tree of Nodes.
@@ -51,6 +52,7 @@ impl Node {
             .map(|a| a.trim().to_string())
     }
 
+
     pub fn to_string_visit (&self, 
         visitor: fn(&Node) -> Result<(String, String)>
     ) -> Result<String> 
@@ -75,7 +77,14 @@ impl Node {
 
 
     pub fn to_string_tex(&self) -> Result<String> {
-        self.to_string_visit(Self::tex_visitor)
+        let tex = self.to_string_visit(Self::tex_visitor)?;
+
+        Ok(add_tex_dependencies(tex))
+    }
+
+
+    pub fn to_string_html(&self) -> Result<String> {
+        self.to_string_visit(Self::html_visitor)
     }
     
 
@@ -88,6 +97,21 @@ impl Node {
             NodeKind::Addition => (r"{\color{blue}", "}"),
             NodeKind::Deletion => (r"{\color{red}\sout{", "}}"),
             NodeKind::Comment => (r"\fcolorbox{black}{yellow}{", author_closer),
+            NodeKind::Root => ("", "")
+        };
+        Ok((r.0.to_string(), r.1.to_string()))
+    }
+
+
+    fn html_visitor(n: &Node) -> Result<(String, String)> {
+        let author_closer =  n.author_clean().unwrap_or(String::from(""));
+        let author_closer = format!(" {}</aside>", author_closer);
+        let author_closer = author_closer.as_str();
+        let r = match n.kind {
+            // requires color and ulem packages
+            NodeKind::Addition => ("<ins>", "</ins>"),
+            NodeKind::Deletion => ("<del>", "</del>"),
+            NodeKind::Comment => ("<aside>", author_closer),
             NodeKind::Root => ("", "")
         };
         Ok((r.0.to_string(), r.1.to_string()))
@@ -214,6 +238,17 @@ pub fn opener(nk: &NodeKind) -> &str {
         NodeKind::Deletion => "--[",
         NodeKind::Comment => "%%["
     }
+}
+
+
+fn add_tex_dependencies(tex: String) -> String {
+    let begin_doc_re = Regex::new(r"\\begin\{document\}").unwrap();
+    let begin_with_uses = 
+    r"
+\usepackage{color}
+\usepackage{ulem}
+\begin{document}";
+    begin_doc_re.replace(tex.as_str(), begin_with_uses).to_string()
 }
 
 

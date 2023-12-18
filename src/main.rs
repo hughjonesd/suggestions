@@ -5,9 +5,8 @@ TODO:
 
 * means priority
 
-- build binaries *
-- document library *
-  - clean it up, e.g. have an add() method
+- clean up library, release on crates.io
+- rewrite to use trait objects in Contents?
 - allow --[ Deleted text // Added text ]++.
   - Note, this isn't gonna happen when people do addition first.
     It's most useful for deletions. 
@@ -51,14 +50,8 @@ TODO:
 
 - vim syntax?
 - allow stdin as input to old/new
-- tex output
 - options: handling comments 
   - options to strip or keep; maybe separate command*
-
-- make author a &str, understand this stuff better
-- visitor pattern?
-    - something like "visit each node and replace tags with the following
-      (either string or closure)"
 
 */
 
@@ -93,6 +86,8 @@ enum Commands {
     Colorize {file: String},
     /// Print suggestions FILE with TeX highlighting
     Tex {file: String},
+    /// Print suggestions FILE with HTML highlighting
+    HTML {file: String},
 
     #[command(hide = true)]
     Trousers {},
@@ -132,6 +127,9 @@ fn main() -> Result<()> {
         },
         Commands::Tex{file} => {
             command_tex(file)
+        },
+        Commands::HTML{file} => {
+            command_html(file)
         },
         Commands::Trousers{} => {
             command_trousers()
@@ -196,20 +194,17 @@ fn command_tex(path: &str) -> Result<()> {
     let node = make_node_from_file(path)?;
     let tex = node.to_string_tex()?;
 
-    let tex = add_tex_dependencies(tex);
     Ok(println!("{}", tex))
 }
 
 
-fn add_tex_dependencies(tex: String) -> String {
-    let begin_doc_re = Regex::new(r"\\begin\{document\}").unwrap();
-    let begin_with_uses = 
-    r"
-\usepackage{color}
-\usepackage{ulem}
-\begin{document}";
-    begin_doc_re.replace(tex.as_str(), begin_with_uses).to_string()
+fn command_html(path: &str) -> Result<()> {
+    let node = make_node_from_file(path)?;
+    let html = node.to_string_html()?;
+
+    Ok(println!("{}", html))
 }
+
 
 fn ensure_canonical_author(author: &mut String) {
     if ! author.starts_with('@') {
