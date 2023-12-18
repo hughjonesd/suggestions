@@ -114,17 +114,22 @@ sign your suggested changes. Do that by putting your handle
 at the end of the change, just like for a comment. The handle
 must start with `@` and must be the last word:
 
-
-       And God said, 
-    --[Light be made, and the light was made. @tyndale]-- 
-    ++[Let there be lyghte and there was lyghte. @tyndale]++
-    ++[Let there be light: and there was light. @kjv]++
+    And God said, 
+    %%[first try! @wycliffe]%%
+    --[Light be made, 
+    and the light was made. @tyndale]-- 
+    ++[Let there be lyghte 
+    and there was lyghte. @tyndale]++
+    ++[Let there be light: 
+    and there was light. @kjv]++
     
 You can nest suggestions within each other:
 
 
-    Last night I dreamt I went to Manderley++[, the famous 
-    ++[Cornish @editor]++ seaside resort, @daphne ]++ again.
+    Last night I dreamt I went to 
+    Manderley++[, the famous 
+    ++[Cornish @editor]++ seaside 
+    resort, @daphne ]++ again.
 
 You can't nest changes within comments (too confusing). If you 
 want to add to a comment, just write inside it with your handle.
