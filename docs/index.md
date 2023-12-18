@@ -53,17 +53,17 @@ simple rules.
 
 To suggest new text to add to a file, enclose it in `++[` and `]++` tags like this:
 
-    The original text, ++[your suggested addition,]++ 
+    The original text, ++[your addition,]++ 
     and more text.
 
 To suggest a deletion from a file, enclose it in `--[` and `]--` tags like this:
 
-    The original text, --[the section you want to delete,]-- 
+    The original text, --[text to delete,]-- 
     and more text.
 
 To make a comment, enclose it in `%%[` and `]%%`:
 
-    %%[ This clarifies the argument, right? @stephen ]%%
+    %%[Is this clearer? @stephen]%%
 
 You can sign the comment with a `@handle` as the last word.
 
