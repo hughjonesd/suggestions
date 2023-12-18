@@ -69,7 +69,7 @@ struct Cli {
     command: Commands,
 }
 
-
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Subcommand)]
 enum Commands {
     /// Output diff from OLD to NEW in suggestions format
@@ -85,7 +85,7 @@ enum Commands {
     /// Print suggestions FILE, highlight changes and comments
     Colorize {file: String},
     /// Print suggestions FILE with TeX highlighting
-    Tex {file: String},
+    Tex {file: String}, 
     /// Print suggestions FILE with HTML highlighting
     HTML {file: String},
 
