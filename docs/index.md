@@ -126,12 +126,11 @@ must start with `@` and must be the last word:
 You can nest suggestions within each other:
 
 
-    Last night I dreamt I went to 
-    Manderley++[, the famous 
-    ++[Cornish @editor]++ seaside 
-    resort, @daphne ]++ again.
+    Last night I dreamt I went to Manderley
+    ++[, the famous ++[Cornish @editor]++ 
+    seaside resort, @daphne ]++ again.
 
-You can't nest changes within comments (too confusing). If you 
+You can't nest changes within comments (it would be too confusing). If you 
 want to add to a comment, just write inside it with your handle.
 It's only a comment anyway.
 
